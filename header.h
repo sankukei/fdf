@@ -20,7 +20,7 @@ typedef struct s_coordo
 	float	y2;
 	int	screen_width;
 	int	screen_height;
-	int	zoom;
+	float	zoom;
 
 } s_coordo;
 

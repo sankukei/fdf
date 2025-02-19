@@ -31,7 +31,8 @@ void	my_mlx_pixel_put(t_data *data, int x, int y, int color)
 	*(unsigned *)dst = color;
 }
 
-double	rescale(int value, double in_max, double out_min, double out_max) {
+double	rescale(int value, double in_max, double out_min, double out_max)
+{
 	return out_min + (value * (out_max - out_min) / in_max);
 }
 
@@ -53,7 +54,7 @@ int	color_picker(float count, float max_itter)
 		return (0x0000ff);
 }
 
-void	create_img(void *img)
+int	create_img(void *img)
 {
 //	(void)img;
 	s_coordo	cordo;
@@ -64,7 +65,7 @@ void	create_img(void *img)
 	cordo.y2 = 1.2;
 	cordo.screen_width = 1000;
 	cordo.screen_height = 1000;
-	cordo.zoom = 1000;
+	cordo.zoom = 2;
 	float	i = 0;
 	float	j = 0;
 	float	count = 0;
@@ -76,12 +77,12 @@ void	create_img(void *img)
 		while (j++ < cordo.screen_height)
 		{
 			count = 0;
-			fractal.x = rescale(i, 1000, -2, 2);
-			fractal.y = rescale(j, 1000, 2, -2);
+			fractal.x = rescale(i, 1000, -2, 2) / cordo.zoom;
+			fractal.y = rescale(j, 1000, 2, -2) / cordo.zoom;
 			fractal.c1 = fractal.x;
 			fractal.c2 = fractal.y;
 
-			while (count <= 20)
+			while (count <= 10)
 			{
 				tmp = fractal.x;
 				fractal.x = (fractal.x * fractal.x) - (fractal.y * fractal.y);
@@ -95,11 +96,12 @@ void	create_img(void *img)
 				}
 				count += 0.01;
 			}
-			if (count >= 20)
+			if (count >= 10)
 				my_mlx_pixel_put(img, i, j, 0x000000);
 		}
 		j = 0;
 	}
+	return (0);
 }
 
 int	close_win(int keycode, t_vars *vars)
@@ -118,17 +120,21 @@ int	key_hook(int keycode, t_vars *vars)
 	return (0);
 }
 
-int	mouse_hook(int keycode, t_vars *vars)
+int	mouse_hook(int keycode, s_coordo *cordo, void *img)
 {
-	(void)vars;
 	if (keycode == 4)
+	{
+		cordo->zoom += 0.2;
+		create_img(img);
 		write(1, "MW UP", 5);
+	}
 	return (0);
 }
 int	main(void)
 {
 	t_data	img;
 	t_vars	vars;
+	s_coordo cordo;
 
 	vars.mlx = mlx_init();
 	vars.win = mlx_new_window(vars.mlx, 1000, 1000, "fractal");
@@ -141,7 +147,7 @@ int	main(void)
 	mlx_put_image_to_window(vars.mlx, vars.win, img.img, 0, 0);
 	//	window  keypress mask fn  image adress
 //	mlx_key_hook(vars.win, key_hook, &vars);
-	mlx_hook(vars.win, 2, 1L<<0, close_win, &img);
+	mlx_hook(vars.win, 2, 1L<<0, close_win, &cordo);
 	mlx_mouse_hook(vars.win, mouse_hook, &vars);
 	mlx_loop(vars.mlx);
 	return (0);
